@@ -10,8 +10,8 @@ from PIL import Image
 # 定义文件路径
 vector_file_path = "output/vectors.json"
 output_dir = "output"
-color_text_file = r"D:\ElementImportance\Data\QGIS_label_style.txt"
-image_dir = r"D:\ElementImportance\Data\TestData\org"  # 原始图像目录路径
+color_text_file = r"..\Data\QGIS_label_style.txt"
+image_dir = r"..\Data\TestData\org"  # 原始图像目录路径
 
 # 确保输出目录存在
 os.makedirs(output_dir, exist_ok=True)
