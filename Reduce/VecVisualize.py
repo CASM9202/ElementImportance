@@ -26,9 +26,9 @@ def load_color_map(file_path):
                 parts = line.split(",")
                 if len(parts) >= 6:
                     category = parts[-1].strip()
-                    rgb = [int(part) for part in parts[1:4]]
+                    rgb = [int(part) for part in parts[1:3]]
                     alpha = int(parts[3])
-                    color = "#{:02X}{:02X}{:02X}{:02X}".format(*rgb, alpha)
+                    color = "#{:02X}{:02X}{:02X}".format(*rgb, alpha)
                     color_map[category] = color
     return color_map
 
@@ -69,13 +69,13 @@ def draw_vectors_on_image(image_path, vectors, color_map, output_path):
     # 将图像亮度降低到原来的一定比例
     brightness_factor = 0.5  # 这里的0.5表示亮度变为原来的50%
     img_darker = np.clip(img * brightness_factor, 0, 255).astype(np.uint8)
+    # 垂直翻转图像
+    img_darker = np.flipud(img_darker)
+
 
     fig, ax = plt.subplots()
     ax.imshow(img_darker)  # 显示变暗的图像
     ax.axis('off')  # 关闭坐标轴
-
-
-
 
     # 遍历features，绘制每种几何类型
     for feature in vectors['features']:
@@ -86,36 +86,20 @@ def draw_vectors_on_image(image_path, vectors, color_map, output_path):
 
         if feature_type == "Polygon":
             # 处理多边形
-            poly = Polygon(coordinates[0], closed=True, edgecolor=color, facecolor='none', linewidth=2, alpha=1)
+            # 调整坐标系，将y坐标反转
+            adjusted_coordinates = [(x, img_height - y) for x, y in coordinates[0]]
+            poly = Polygon(adjusted_coordinates, closed=True, edgecolor=color, facecolor='none', linewidth=2, alpha=1)
             ax.add_patch(poly)
         elif feature_type == "Polyline":
-            xs, ys = zip(*coordinates)  # 解包坐标点
+            # 调整坐标系，将y坐标反转
+            adjusted_coordinates = [(x, img_height - y) for x, y in coordinates]
+            xs, ys = zip(*adjusted_coordinates)  # 解包坐标点
             ax.plot(xs, ys, color=color, linewidth=2)  # 绘制折线
-            # # 计算中心线坐标
-            # center_line_xs = []
-            # center_line_ys = []
-            #
-            # # 计算每段线段的中点
-            # for i in range(len(xs) - 1):
-            #     mid_x = (xs[i] + xs[i + 1]) / 2
-            #     mid_y = (ys[i] + ys[i + 1]) / 2
-            #     center_line_xs.append(mid_x)
-            #     center_line_ys.append(mid_y)
-            #
-            # # 添加起点和终点
-            # center_line_xs = [xs[0]] + center_line_xs + [xs[-1]]
-            # center_line_ys = [ys[0]] + center_line_ys + [ys[-1]]
-            #
-            #
-            # # 绘制中心线
-            # plt.plot(center_line_xs, center_line_ys, color=color)
-
-
-
         elif feature_type == "Point":
             if len(coordinates) > 1:  # 确保坐标点数量正确
                 x, y = coordinates  # 直接解包坐标点
-                ax.plot(x, y, marker="o", color=color, markersize=10)  # 绘制点
+                # 调整坐标系，将y坐标反转
+                ax.plot(x, img_height - y, marker="o", color=color, markersize=10)  # 绘制点
 
     # 设置坐标范围
     ax.set_xlim(0, img_width)
